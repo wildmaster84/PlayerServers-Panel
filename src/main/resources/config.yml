@@ -1,0 +1,14 @@
+database:
+  url: "jdbc:sqlite:playerservers.db"  # Default SQLite connection
+  # Type of database ("sqlite", "mysql")
+  # Uncomment and configure the following lines if using MySQL
+  # url: "jdbc:mysql://localhost:3306/mydatabase"
+
+webserver:
+  port: 8080
+  # Port for the web server
+  
+api-token: ""
+  # Used to encrypt session token.
+  # Use /regenerateToken to change this!
+ 

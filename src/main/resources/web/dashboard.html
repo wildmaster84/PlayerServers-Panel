@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PlayerServers Dashboard</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Roboto', sans-serif;
+            background-color: #121212;
+            color: #ffffff;
+        }
+
+        /* Sidebar styling */
+        .sidebar {
+            width: 250px;
+            background-color: #2d2d2d;
+            height: 100vh;
+            position: fixed;
+            top: 0;
+            left: 0;
+            display: flex;
+            flex-direction: column;
+            padding-top: 20px;
+        }
+
+        .sidebar ul {
+            list-style-type: none;
+            padding: 0;
+        }
+
+        .sidebar ul li {
+            padding: 15px;
+            text-align: left;
+            border-bottom: 1px solid #3a3a3a;
+        }
+
+        .sidebar ul li a {
+            color: #ffffff;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+        }
+
+        .sidebar ul li a i {
+            margin-right: 10px;
+        }
+
+        .sidebar ul li a:hover {
+            background-color: #3a3a3a;
+            border-radius: 5px;
+        }
+
+        .sidebar .logout {
+            margin-top: auto;
+            padding: 15px;
+            text-align: left;
+            border-top: 1px solid #3a3a3a;
+        }
+
+        /* Header styling */
+        .header {
+            background-color: #007acc;
+            height: 60px;
+            color: #ffffff;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 20px;
+            margin-left: 250px;
+        }
+
+        /* Content Area */
+        .content {
+            margin-left: 250px;
+            padding: 20px;
+            background-color: #1e1e1e;
+            height: calc(100vh - 60px);
+            overflow-y: auto;
+        }
+
+        /* Server list styling */
+        .server-list {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .server-list-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 20px;
+            background-color: #2b2b2b;
+            border-radius: 10px;
+            box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.2);
+            transition: background-color 0.3s ease;
+            width: 100%;
+            text-decoration: none;
+            color: #ffffff;
+        }
+
+        .server-list-item:hover {
+            background-color: #3a3a3a;
+        }
+
+        .server-status {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .status-icon {
+            width: 15px;
+            height: 15px;
+            border-radius: 50%;
+            display: inline-block;
+        }
+
+        .status-icon.stopped {
+            background-color: #cc0000;
+        }
+
+        .status-icon.running {
+            background-color: #00cc00;
+        }
+
+        .status-icon.starting {
+            background-color: #ffcc00;
+        }
+
+        .status-icon.installing {
+            background-color: #ff6600;
+        }
+
+        .server-info {
+            flex-grow: 1;
+            margin-left: 20px;
+        }
+
+        .server-actions {
+            text-align: right;
+        }
+
+        /* Floating action button styling */
+        .floating-button {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            width: 50px;
+            height: 50px;
+            background-color: #007acc;
+            color: white;
+            border-radius: 50%;
+            border: none;
+            font-size: 24px;
+            box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.3);
+            cursor: pointer;
+        }
+
+        .floating-button:hover {
+            background-color: #005b99;
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- Sidebar -->
+    <div class="sidebar">
+        <ul>
+            <li><a href="/account"><i class="icon-account"></i> Account</a></li>
+            <li><a href="/servers"><i class="icon-servers"></i> Servers</a></li>
+            <li><a href="/nodes"><i class="icon-nodes"></i> Nodes</a></li>
+            <li><a href="/users"><i class="icon-users"></i> Users</a></li>
+            <li><a href="/templates"><i class="icon-templates"></i> Templates</a></li>
+            <li><a href="/settings"><i class="icon-settings"></i> Settings</a></li>
+        </ul>
+        <div class="logout">
+            <a href="/logout"><i class="icon-logout"></i> Logout</a>
+        </div>
+    </div>
+
+    <!-- Header -->
+    <div class="header">
+        <h1>PlayerServers Dashboard</h1>
+        <div class="header-actions">
+            <!-- Icons or user actions -->
+        </div>
+    </div>
+
+    <!-- Content Area -->
+    <div class="content">
+        <h2>Servers</h2>
+        <div class="server-list" id="server-list">
+            <!-- Servers will be dynamically populated here -->
+        </div>
+    </div>
+
+    <!-- Floating Action Button -->
+    <button class="floating-button">+</button>
+
+    <script>
+        // JSON data example (replace with actual server list data from the backend)
+        const serverListData = {{server_list}};
+
+        // Function to populate server list
+        function populateServerList(data) {
+            const serverListElement = document.getElementById('server-list');
+            serverListElement.innerHTML = '';  // Clear existing content
+
+            for (const [username, serverInfo] of Object.entries(data)) {
+                let statusClass = 'stopped'; // Default to stopped
+                switch (serverInfo.status) {
+                    case 'RUNNING':
+                        statusClass = 'running';
+                        break;
+                    case 'STARTING':
+                        statusClass = 'starting';
+                        break;
+                    case 'INSTALLING':
+                        statusClass = 'installing';
+                        break;
+                }
+
+                const serverListItem = `
+                    <a href="/server/${serverInfo.uuid}" class="server-list-item">
+                        <div class="server-status">
+                            <span class="status-icon ${statusClass}"></span>
+                            <span class="status-text">${serverInfo.status}</span>
+                        </div>
+                        <div class="server-info">
+                            <span class="server-name">${username}</span> - 
+                            <span class="server-ip">Port: ${serverInfo.port}</span>
+                        </div>
+                        <div class="server-actions">UUID: ${serverInfo.uuid}</div>
+                    </a>
+                `;
+
+                serverListElement.insertAdjacentHTML('beforeend', serverListItem);
+            }
+        }
+
+        // Call the function with the example JSON data
+        populateServerList(serverListData);
+    </script>
+
+</body>
+
+</html>

@@ -1,0 +1,600 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Advanced File Manager</title>
+    <style>
+        body {
+            font-family: 'Roboto', sans-serif;
+            background-color: #1d1f27;
+            color: #c9d1d9;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+        }
+
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background-color: #282c34;
+            padding: 10px 20px;
+            color: #ffffff;
+        }
+
+        header h1 {
+            font-size: 20px;
+            margin: 0;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 10px;
+        }
+
+        .action-buttons button {
+            background-color: #3b82f6;
+            border: none;
+            padding: 10px 15px;
+            color: #ffffff;
+            cursor: pointer;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+
+        .action-buttons button:hover {
+            background-color: #2563eb;
+        }
+
+        .file-manager-container {
+            display: flex;
+            flex-grow: 1;
+            overflow: hidden;
+        }
+
+        .file-list-container {
+            background-color: #2d333b;
+            padding: 20px;
+            width: 30%;
+            overflow-y: auto;
+            border-right: 1px solid #444c56;
+        }
+
+        .breadcrumb {
+            margin-bottom: 20px;
+            font-size: 14px;
+        }
+
+        .breadcrumb a {
+            color: #3b82f6;
+            text-decoration: none;
+        }
+
+        .file-list {
+            list-style-type: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .file-list-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 10px;
+            background-color: #2f353f;
+            border-radius: 4px;
+            margin-bottom: 8px;
+            cursor: pointer;
+            transition: background-color 0.2s;
+            position: relative;
+        }
+
+        .file-list-item:hover {
+            background-color: #3b424d;
+        }
+
+        .file-list-item.selected {
+            background-color: #3b82f6;
+            color: #ffffff;
+        }
+
+        .file-icon {
+            margin-right: 10px;
+            font-size: 18px;
+        }
+
+        .file-name {
+            flex-grow: 1;
+        }
+
+        .three-dot-button {
+            background: none;
+            border: none;
+            color: #c9d1d9;
+            cursor: pointer;
+            font-size: 18px;
+            padding: 5px;
+        }
+
+        .three-dot-button:hover {
+            background-color: #444c56;
+            border-radius: 50%;
+        }
+
+        .action-menu {
+            position: absolute;
+            top: 30px;
+            right: 10px;
+            background-color: #2d333b;
+            border: 1px solid #444c56;
+            border-radius: 8px;
+            display: none;
+            flex-direction: column;
+            padding: 10px;
+            z-index: 1000;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        .action-menu button {
+            background-color: transparent;
+            border: none;
+            color: #c9d1d9;
+            padding: 8px 0;
+            cursor: pointer;
+            text-align: left;
+            width: 100%;
+        }
+
+        .action-menu button:hover {
+            background-color: #3b424d;
+            border-radius: 4px;
+        }
+
+        .editor-container {
+            background-color: #282c34;
+            padding: 20px;
+            width: 70%;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .CodeMirror {
+            width: 100%;
+            height: 100%;
+            background-color: #1d1f27;
+            color: #c9d1d9;
+            font-family: 'Roboto Mono', monospace;
+            font-size: 14px;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+
+        .editor-actions {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 10px;
+        }
+
+        .editor-actions select {
+            background-color: #3b82f6;
+            border: none;
+            padding: 8px;
+            color: #ffffff;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+
+        .editor-actions button {
+            background-color: #3b82f6;
+            border: none;
+            padding: 10px 15px;
+            color: #ffffff;
+            cursor: pointer;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+
+        .editor-actions button:hover {
+            background-color: #2563eb;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        .cm-s-material-darker.CodeMirror {
+            height: 100% !important;
+        }
+    </style>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.17/codemirror.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.17/theme/material-darker.min.css">
+</head>
+<body>
+    <header>
+        <h1>File Manager</h1>
+        <div class="action-buttons">
+            <button>Create Directory</button>
+            <button>Upload</button>
+            <button>New File</button>
+        </div>
+    </header>
+
+    <div class="file-manager-container">
+        <div class="file-list-container">
+            <div class="breadcrumb" id="breadcrumb"></div>
+            <ul class="file-list" id="fileList"></ul>
+        </div>
+        <div class="editor-container hidden" id="editorContainer">
+            <textarea id="editor"></textarea>
+            <div class="editor-actions">
+                <button id="saveButton">Save Content</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- CodeMirror and Language Modes -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.17/codemirror.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.17/mode/yaml/yaml.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.17/mode/javascript/javascript.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.17/mode/toml/toml.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.17/mode/xml/xml.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.17/mode/python/python.min.js"></script>
+    <script>
+		const serverUUID = "{{server_uuid}}";  // Replace this with your server UUID
+		const fileListElement = document.getElementById('fileList');
+		const breadcrumbElement = document.getElementById('breadcrumb');
+		const editorContainer = document.getElementById('editorContainer');
+		const editorTextArea = document.getElementById('editor');
+		const saveButton = document.getElementById('saveButton');
+		let codeMirrorEditor = null;
+		let currentDirectory = '/';
+		let currentFilePath = '';
+		let currentSelectedItem = null;
+
+		function fetchFiles(path = '/') {
+			currentDirectory = path;  // Update current directory
+			updateBreadcrumb();
+
+			fetch(`/api/server/${serverUUID}/files?path=${path}`)
+				.then(response => response.json())
+				.then(data => {
+					renderFileList(data.files);
+				})
+				.catch(error => {
+					console.error('Error fetching files:', error);
+				});
+		}
+
+		function renderFileList(files) {
+			fileListElement.innerHTML = '';  // Clear current list
+
+			const directories = [];
+			const fileItems = [];
+
+			for (const fileName in files) {
+				const fileType = files[fileName];
+				const listItem = document.createElement('li');
+				listItem.className = 'file-list-item';
+
+				const icon = document.createElement('span');
+				icon.className = 'file-icon';
+				icon.innerHTML = fileType === 'directory' ? '&#128193;' : '&#128196;';
+
+				listItem.dataset.path = `${currentDirectory}/${fileName}`.replace('//', '/');
+				listItem.dataset.type = fileType;
+				listItem.dataset.extension = fileType !== 'directory' ? fileName.split('.').pop().toLowerCase() : '';
+				listItem.innerHTML = `
+					<span class="file-icon">${icon.innerHTML}</span>
+					<span class="file-name">${fileName}</span>
+					<button class="three-dot-button">⋮</button>
+				`;
+
+				const actionMenu = createActionMenu(listItem.dataset.path, listItem.dataset.type, listItem.dataset.extension);
+				listItem.appendChild(actionMenu);
+
+				const threeDotButton = listItem.querySelector('.three-dot-button');
+				threeDotButton.addEventListener('click', (e) => {
+					e.stopPropagation(); // Prevent file opening
+					toggleActionMenu(actionMenu);
+					adjustMenuHeight(actionMenu);
+				});
+
+				// Prevent file opening when clicking within the action menu
+				actionMenu.addEventListener('click', (e) => {
+					e.stopPropagation();
+				});
+
+				listItem.addEventListener('click', () => {
+					if (fileType === 'directory') {
+						fetchFiles(listItem.dataset.path);
+					} else {
+						openEditor(listItem.dataset.path, listItem);
+					}
+				});
+
+				if (fileType === 'directory') {
+					directories.push(listItem);
+				} else {
+					fileItems.push(listItem);
+				}
+			}
+
+			directories.concat(fileItems).forEach(item => fileListElement.appendChild(item));
+		}
+
+		function toggleActionMenu(actionMenu) {
+			const isMenuOpen = actionMenu.style.display === 'block';
+			document.querySelectorAll('.action-menu').forEach(menu => menu.style.display = 'none');  // Close other menus
+			actionMenu.style.display = isMenuOpen ? 'none' : 'block';  // Toggle this menu
+		}
+
+		function createActionMenu(filePath, fileType, fileExtension) {
+			const actionMenu = document.createElement('div');
+			actionMenu.className = 'action-menu';
+
+			let actionsHtml = `
+				<button onclick="renameFile('${filePath}')">Rename</button>
+				<button onclick="deleteFileOrDirectory('${filePath}')">Delete</button>
+			`;
+
+			if (fileType === 'directory') {
+				actionsHtml += `<button onclick="compressFile('${filePath}')">Compress</button>`;
+			}
+
+			if (fileExtension === 'zip') {
+				actionsHtml += `<button onclick="decompressFile('${filePath}')">Decompress</button>`;
+			}
+
+			if (fileType !== 'directory' || fileExtension === 'zip') {
+				actionsHtml += `<button onclick="downloadFile('${filePath}')">Download</button>`;
+			}
+
+			actionMenu.innerHTML = actionsHtml;
+			return actionMenu;
+		}
+
+		function closeAllActionMenus() {
+			document.querySelectorAll('.action-menu').forEach(menu => menu.style.display = 'none');
+		}
+
+		// Close action menus when clicking outside of them
+		document.addEventListener('click', (e) => {
+			if (!e.target.closest('.file-list-item')) {
+				closeAllActionMenus();
+			}
+		});
+
+		function adjustMenuHeight(actionMenu) {
+			const menuRect = actionMenu.getBoundingClientRect();
+			const availableSpaceBelow = window.innerHeight - menuRect.bottom;
+			const availableSpaceAbove = menuRect.top;
+
+			// Adjust height based on available space
+			if (availableSpaceBelow < 100 && availableSpaceAbove > availableSpaceBelow) {
+				// Menu overflows below, and more space is available above
+				actionMenu.style.maxHeight = `${availableSpaceAbove - 10}px`;
+				actionMenu.style.bottom = '10px';
+				actionMenu.style.top = 'auto';
+			} else {
+				// Default behavior
+				actionMenu.style.maxHeight = `${availableSpaceBelow - 10}px`;
+				actionMenu.style.bottom = 'auto';
+				actionMenu.style.top = '30px';
+			}
+		}
+
+		function updateBreadcrumb() {
+			const parts = currentDirectory.split('/').filter(Boolean);
+			breadcrumbElement.innerHTML = `/ <a href="#" onclick="fetchFiles('/')">home</a>`;
+			let path = '';
+			parts.forEach(part => {
+				path += `/${part}`;
+				breadcrumbElement.innerHTML += ` / <a href="#" onclick="fetchFiles('${path}')">${part}</a>`;
+			});
+		}
+
+		function openEditor(filePath, listItem) {
+			fetch(`/api/server/${serverUUID}/files?path=${filePath}`)
+				.then(response => response.text())
+				.then(data => {
+					editorContainer.classList.remove('hidden');
+					currentFilePath = filePath;
+
+					// Highlight the selected file
+					if (currentSelectedItem) {
+						currentSelectedItem.classList.remove('selected');
+					}
+					listItem.classList.add('selected');
+					currentSelectedItem = listItem;
+
+					// If CodeMirror instance exists, update content
+					if (codeMirrorEditor) {
+						codeMirrorEditor.setValue(data);
+					} else {
+						// Initialize CodeMirror instance if not already created
+						codeMirrorEditor = CodeMirror.fromTextArea(editorTextArea, {
+							mode: getModeForFile(filePath),
+							lineNumbers: true,
+							theme: 'material-darker',
+						});
+						codeMirrorEditor.setValue(data);
+					}
+
+					// Set the correct mode for the file type
+					codeMirrorEditor.setOption('mode', getModeForFile(filePath));
+					codeMirrorEditor.refresh();
+				})
+				.catch(error => {
+					console.error('Error opening file:', error);
+				});
+		}
+
+		function deleteFileOrDirectory(filePath) {
+			if (confirm(`Are you sure you want to delete ${filePath}?`)) {
+				fetch(`/api/server/${serverUUID}/files?path=${filePath}`, {
+					method: 'DELETE'
+				})
+				.then(response => response.json())
+				.then(data => {
+					if (data.success) {
+						alert('File/Directory deleted successfully!');
+						fetchFiles(currentDirectory);  // Refresh the file list
+					} else {
+						alert('Failed to delete file/directory: ' + data.message);
+					}
+				})
+				.catch(error => {
+					console.error('Error deleting file/directory:', error);
+				});
+			}
+		}
+
+		function getModeForFile(filePath) {
+			const extension = filePath.split('.').pop();
+			switch (extension) {
+				case 'yml':
+				case 'yaml':
+					return 'yaml';
+				case 'toml':
+				case 'properties':
+				case 'log':
+					return 'toml';
+				case 'json':
+					return 'application/json';
+				case 'xml':
+					return 'xml';
+				case 'js':
+					return 'javascript';
+				default:
+					return 'plaintext';
+			}
+		}
+
+		saveButton.addEventListener('click', () => {
+			const content = codeMirrorEditor.getValue();
+
+			fetch(`/api/server/${serverUUID}/files?path=${currentFilePath}`, {
+				method: 'POST',
+				headers: {
+					'Content-Type': 'text/plain'
+				},
+				body: content
+			})
+			.then(response => response.json())
+			.then(data => {
+				if (data.success) {
+					alert('File saved successfully!');
+				} else {
+					alert('Failed to save file: ' + data.message);
+				}
+			})
+			.catch(error => {
+				console.error('Error saving file:', error);
+			});
+		});
+
+		function renameFile(filePath) {
+			const newName = prompt('Enter the new name for the file/directory:');
+			if (newName) {
+				const newPath = `${currentDirectory}/${newName}`;
+				fetch(`/api/server/${serverUUID}/rename`, {
+					method: 'POST',
+					headers: {
+						'Content-Type': 'application/json'
+					},
+					body: JSON.stringify({ oldPath: filePath, newPath: newPath })
+				})
+				.then(response => response.json())
+				.then(data => {
+					if (data.success) {
+						alert('File renamed successfully!');
+						fetchFiles(currentDirectory);  // Refresh the file list
+					} else {
+						alert('Failed to rename file: ' + data.message);
+					}
+				})
+				.catch(error => {
+					console.error('Error renaming file:', error);
+				});
+			}
+		}
+
+		function compressFile(filePath) {
+			fetch(`/api/server/${serverUUID}/compress`, {
+				method: 'POST',
+				headers: {
+					'Content-Type': 'application/json'
+				},
+				body: JSON.stringify({ source: filePath })
+			})
+			.then(response => response.json())
+			.then(data => {
+				if (data.success) {
+					alert('File compressed successfully!');
+					fetchFiles(currentDirectory);  // Refresh the file list
+				} else {
+					alert('Failed to compress file: ' + data.message);
+				}
+			})
+			.catch(error => {
+				console.error('Error compressing file:', error);
+			});
+		}
+
+		function decompressFile(filePath) {
+			fetch(`/api/server/${serverUUID}/decompress`, {
+				method: 'POST',
+				headers: {
+					'Content-Type': 'application/json'
+				},
+				body: JSON.stringify({ zipFile: filePath })
+			})
+			.then(response => response.json())
+			.then(data => {
+				if (data.success) {
+					alert('File decompressed successfully!');
+					fetchFiles(currentDirectory);  // Refresh the file list
+				} else {
+					alert('Failed to decompress file: ' + data.message);
+				}
+			})
+			.catch(error => {
+				console.error('Error decompressing file:', error);
+			});
+		}
+
+		function downloadFile(filePath) {
+			fetch(`/api/server/${serverUUID}/download`, {
+				method: 'POST',
+				headers: {
+					'Content-Type': 'application/json'
+				},
+				body: JSON.stringify({ path: filePath })
+			})
+			.then(response => response.blob())
+			.then(blob => {
+				// Create a link element to download the file
+				const url = window.URL.createObjectURL(blob);
+				const a = document.createElement('a');
+				a.href = url;
+				a.download = filePath.split('/').pop();  // Extract the filename from the path
+				document.body.appendChild(a);
+				a.click();
+				a.remove();
+			})
+			.catch(error => {
+				console.error('Error downloading file:', error);
+			});
+		}
+
+		fetchFiles();  // Initial fetch to load file list
+	</script>
+
+</body>
+</html>

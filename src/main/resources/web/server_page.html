@@ -1,0 +1,471 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Server Page</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Roboto', sans-serif;
+            background-color: #1d1f27;
+            color: #c9d1d9;
+        }
+
+        /* Sidebar styling */
+        .sidebar {
+            width: 250px;
+            background-color: #2d333b;
+            height: 100vh;
+            position: fixed;
+            top: 0;
+            left: 0;
+            display: flex;
+            flex-direction: column;
+            padding-top: 20px;
+        }
+
+        .sidebar ul {
+            list-style-type: none;
+            padding: 0;
+        }
+
+        .sidebar ul li {
+            padding: 15px;
+            text-align: left;
+            border-bottom: 1px solid #444c56;
+        }
+
+        .sidebar ul li a {
+            color: #c9d1d9;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            transition: background-color 0.2s;
+        }
+
+        .sidebar ul li a:hover {
+            background-color: #3b424d;
+            border-radius: 5px;
+        }
+
+        .sidebar .logout {
+            margin-top: auto;
+            padding: 15px;
+            text-align: left;
+            border-top: 1px solid #444c56;
+        }
+
+        /* Header styling */
+        .header {
+            background-color: #282c34;
+            height: 60px;
+            color: #ffffff;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 20px;
+            margin-left: 250px;
+        }
+
+        /* Content styling */
+        .content {
+            margin-left: 250px;
+            padding: 20px;
+            background-color: #1e1e1e;
+            height: calc(100vh - 60px);
+            overflow-y: auto;
+        }
+
+        .server-info {
+            background-color: #2d333b;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .server-info .details h2 {
+            margin-bottom: 10px;
+        }
+
+        .server-info .metrics {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+            color: #adb5bd;
+        }
+
+        .metrics p {
+            margin-bottom: 5px;
+        }
+
+        /* Console section */
+        .console {
+            background-color: #2d333b;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            position: relative;
+        }
+
+        .console pre {
+            background-color: #1d1f27;
+            padding: 10px;
+            border-radius: 5px;
+            height: 300px;
+            overflow-y: scroll;
+            color: #00ff00; /* Green text for console output */
+            font-family: monospace;
+        }
+
+        .console input {
+            width: calc(100% - 20px);
+            padding: 10px;
+            border-radius: 5px;
+            border: none;
+            margin-top: 10px;
+            background-color: #333;
+            color: #ffffff;
+        }
+
+        /* Snap to Bottom Button */
+        .snap-to-bottom {
+            position: absolute;
+            bottom: 20px;
+            right: 20px;
+            padding: 10px 15px;
+            background-color: #3b82f6;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            display: none; /* Hidden by default */
+        }
+
+        .snap-to-bottom:hover {
+            background-color: #2563eb;
+        }
+
+        /* Action buttons */
+        .actions {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .actions button {
+            padding: 10px 20px;
+            background-color: #3b82f6;
+            border: none;
+            border-radius: 5px;
+            color: white;
+            cursor: pointer;
+        }
+
+        .actions button:hover {
+            background-color: #2563eb;
+        }
+
+        .actions button.stop {
+            background-color: #cc0000;
+        }
+
+        .actions button.stop:hover {
+            background-color: #990000;
+        }
+
+        /* Disabled button style */
+        .actions button:disabled {
+            background-color: #555;
+            color: #888;
+            cursor: not-allowed;
+        }
+
+        /* Footer utilities */
+        .footer {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 20px;
+        }
+
+        .footer .utilities,
+        .footer .player-list {
+            background-color: #2d333b;
+            padding: 20px;
+            border-radius: 10px;
+            width: 48%;
+        }
+
+        /* General button styling */
+        button {
+            font-family: 'Roboto', sans-serif;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Sidebar -->
+    <div class="sidebar">
+        <ul>
+            <li><a href="/dashboard">Dashboard</a></li>
+            <li><a href="/servers">Servers</a></li>
+            <li><a href="/server/{{server_uuid}}/files">File Manager</a></li>
+            <li><a href="#">Databases</a></li>
+            <li><a href="#">Schedules</a></li>
+            <li><a href="#">Users</a></li>
+            <li><a href="#">Backups</a></li>
+            <li><a href="#">Network</a></li>
+            <li><a href="#">Settings</a></li>
+            <li><a href="#">Edit Server</a></li>
+        </ul>
+        <div class="logout">
+            <a href="/logout">Logout</a>
+        </div>
+    </div>
+
+    <!-- Header -->
+    <div class="header">
+        <h1>Server: {{server_name}}</h1>
+        <div class="header-actions">
+            <!-- Icons or user actions -->
+        </div>
+    </div>
+
+    <!-- Content Area -->
+    <div class="content">
+        <!-- Server Info -->
+        <div class="server-info">
+            <div class="details">
+                <h2>Server Status: <span id="serverStatus">STOPPED</span></h2>
+                <p>IP: 0.0.0.0:{{server_port}}</p>
+                <p>Players: ?/{{server_maxplayers}}</p>
+            </div>
+            <div class="metrics">
+                <p>CPU: ???</p>
+                <p>RAM: ???/{{server_maxram}} MB</p>
+                <p>DISK: ???/∞ MB</p>
+            </div>
+        </div>
+
+        <!-- Console Section -->
+        <div class="console">
+            <pre id="logOutput">Server offline.</pre>
+            <input type="text" id="commandInput" placeholder="Type a command...">
+            <button class="snap-to-bottom" id="snapToBottom">Snap to Bottom</button>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="actions">
+            <button class="start" id="startButton">Start</button>
+            <button class="restart" id="restartButton">Restart</button>
+            <button class="stop" id="stopButton">Stop</button>
+        </div>
+
+        <!-- Footer Utilities -->
+        <div class="footer">
+            <div class="utilities">
+                <h3>Utilities</h3>
+                <button>Reinstall/Reset Server</button>
+            </div>
+            <div class="player-list">
+                <h3>Players List</h3>
+                <p>Players: 0/{{server_maxplayers}}</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const logOutputElement = document.getElementById('logOutput');
+        const commandInput = document.getElementById('commandInput');
+        const snapToBottomButton = document.getElementById('snapToBottom');
+		const startButton = document.getElementById('startButton');
+		const restartButton = document.getElementById('restartButton');
+		const stopButton = document.getElementById('stopButton');
+		const serverStatusElement = document.getElementById('serverStatus');
+        let eventSource = null;
+        let reconnectTimeout = null;
+
+        function connectToLogs() {
+            if (eventSource) {
+                return;
+            }
+			eventSource = new EventSource("/api/server/{{server_uuid}}/logs");
+
+            eventSource.onmessage = function(event) {
+                const wasScrolledToBottom = isScrolledToBottom();  // Check if console is at the bottom
+
+                logOutputElement.innerHTML += event.data + "<br>";  // Append log data to the console
+				stopButton.disabled = false;
+				startButton.disabled = true;
+
+                if (wasScrolledToBottom) {
+                    logOutputElement.scrollTop = logOutputElement.scrollHeight;  // Auto-scroll to the bottom if it was at the bottom
+                    snapToBottomButton.style.display = 'none';  // Hide the button if already at the bottom
+                }
+            };
+
+            eventSource.onerror = function(error) {
+                logOutputElement.innerHTML = "<span>Server offline.</span><br>";
+                //console.error("SSE error:", error);
+                eventSource.close();
+				eventSource = null;
+            };
+
+            eventSource.onopen = function() {
+                console.log("SSE connection established.");
+                logOutputElement.textContent = "";  // Clear the console on reconnection
+            };
+        }
+
+        // Check if the console is scrolled to the bottom
+        function isScrolledToBottom() {
+            return logOutputElement.scrollHeight - logOutputElement.scrollTop === logOutputElement.clientHeight;
+        }
+
+        // Show "Snap to Bottom" button when user scrolls up
+        logOutputElement.addEventListener('scroll', () => {
+            if (isScrolledToBottom()) {
+                snapToBottomButton.style.display = 'none';
+            } else {
+                snapToBottomButton.style.display = 'block';
+            }
+        });
+
+        // Snap to bottom when button is clicked
+        snapToBottomButton.addEventListener('click', () => {
+            logOutputElement.scrollTop = logOutputElement.scrollHeight;
+            snapToBottomButton.style.display = 'none';
+        });
+
+        // Send the command to the API when Enter is pressed
+        commandInput.addEventListener("keypress", function(event) {
+            if (event.key === "Enter") {
+                event.preventDefault();
+                const command = commandInput.value.trim();
+                if (command) {
+                    sendCommand(command);
+                    commandInput.value = "";  // Clear the input field
+                }
+            }
+        });
+
+        function sendCommand(command) {
+		    if (serverStatusElement.textContent != 'STOPPED' && serverStatusElement.textContent != 'STOPPING' && serverStatusElement.textContent != 'INSTALLING' && serverStatusElement.textContent != 'STARTING') {
+				fetch("/api/server/{{server_uuid}}/command", {
+					method: "POST",
+					headers: {
+						"Content-Type": "application/json"
+					},
+					credentials: "include",
+					body: JSON.stringify({ command: command, playerUUID: '{{player_uuid}}' })
+				})
+				.then(response => {
+					if (!response.ok) {
+						console.error("Failed to send command:", response.message);
+					}
+				})
+				.catch(error => {
+					console.error("Error sending command:", error);
+				});
+		    }
+        }
+
+        function sendStart() {
+		    if (serverStatusElement.textContent != 'RUNNING' && serverStatusElement.textContent != 'STOPPING' && serverStatusElement.textContent != 'INSTALLING' && serverStatusElement.textContent != 'STARTING') {
+				fetch("/api/server/{{server_uuid}}/start", {
+					method: "POST",
+					credentials: "include",
+					body: JSON.stringify({ playerUUID: '{{player_uuid}}' })
+				})
+				.then(response => {
+					if (!response.ok) {
+						console.error("Failed to send start command:", response.message);
+					}
+				})
+				.catch(error => {
+					console.error("Error sending start command:", error);
+				});
+			}
+        }
+		
+		function sendRestart() {
+		    if (serverStatusElement.textContent != 'STOPPING' && serverStatusElement.textContent != 'INSTALLING' && serverStatusElement.textContent != 'STARTING') {
+				fetch("/api/server/{{server_uuid}}/restart", {
+					method: "POST",
+					credentials: "include",
+					body: JSON.stringify({ playerUUID: '{{player_uuid}}' })
+				})
+				.then(response => {
+					if (!response.ok) {
+						console.error("Failed to send restart command:", response.message);
+					}
+				})
+				.catch(error => {
+					console.error("Error sending restart command:", error);
+				});
+			}
+        }
+		
+		function sendStop() {
+		    if (serverStatusElement.textContent != 'STOPPED' && serverStatusElement.textContent != 'STOPPING' && serverStatusElement.textContent != 'INSTALLING' && serverStatusElement.textContent != 'STARTING') {
+				fetch("/api/server/{{server_uuid}}/stop", {
+					method: "POST",
+					credentials: "include",
+					body: JSON.stringify({ playerUUID: '{{player_uuid}}' })
+				})
+				.then(response => {
+					if (!response.ok) {
+						console.error("Failed to send stop command:", response.message);
+					}
+				})
+				.catch(error => {
+					console.error("Error sending stop command:", error);
+				});
+			}
+        }
+		
+		startButton.addEventListener('click', sendStart);
+		restartButton.addEventListener('click', sendRestart);
+		stopButton.addEventListener('click', sendStop);
+		
+		function updateServerStatus() {
+            fetch("/api/server/{{server_uuid}}", {
+				method: "POST",
+                credentials: "include",
+				body: JSON.stringify({ playerUUID: '{{player_uuid}}' })
+			})
+                .then(response => response.json())
+                .then(data => {
+                    serverStatusElement.textContent = data.info.status;
+					if (data.info.status != 'STOPPED' && data.info.status != 'INSTALLING') {
+					    connectToLogs();
+						stopButton.disabled = false;
+				        startButton.disabled = true;
+				    } else {
+						stopButton.disabled = true;
+				        startButton.disabled = false;
+					}
+                })
+                .catch(error => {
+                    console.error("Error fetching server status:", error);
+                    serverStatusElement.textContent = "Error fetching status";
+                });
+        }
+
+        // Update the server status every 5 seconds
+        setInterval(updateServerStatus, 5000);
+
+        // Initial status fetch on page load
+        updateServerStatus();
+    </script>
+
+</body>
+</html>

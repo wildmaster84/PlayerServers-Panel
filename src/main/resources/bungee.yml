@@ -1,0 +1,21 @@
+name: PSPanel
+main: me.wild.PlayerServersPanel  # Replace with the actual fully qualified name of your main class
+version: 1.0.0-DEV
+author: wildmaster84
+description: Add a panel to manage your player server.
+depends: [PlayerServers]
+
+commands:
+  link:
+    description: Links your Minecraft account to your web account.
+    usage: /link <link_token>
+    permission: playerservers.command.link
+
+permissions:
+  playerservers.link:
+    description: Allows players to link their Minecraft account to a web account.
+    default: true
+
+  playerservers.admin:
+    description: Full admin permissions for managing all servers.
+    default: op

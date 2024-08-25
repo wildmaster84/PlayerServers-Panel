@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>404 - Page Not Found</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            background-image: url('https://minecraft.wiki/images/BlockSprite_dirt.png'); /* Minecraft dirt block background */
+            background-size: contain;
+			image-rendering: pixelated;
+			image-rendering: crisp-edges;
+            font-family: 'Minecraftia', sans-serif; /* You can use a Minecraft-styled font */
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            color: #ffffff;
+            text-align: center;
+        }
+
+        h1 {
+            font-size: 72px;
+            margin-bottom: 20px;
+            text-shadow: 2px 2px #000000;
+        }
+
+        p {
+            font-size: 24px;
+            margin-bottom: 30px;
+            text-shadow: 2px 2px #000000;
+        }
+
+        a {
+            text-decoration: none;
+            padding: 15px 30px;
+            background-color: #55aa55;
+            color: #ffffff;
+            border-radius: 8px;
+            font-size: 24px;
+            box-shadow: 4px 4px #000000;
+            transition: all 0.3s;
+        }
+
+        a:hover {
+            background-color: #77cc77;
+            box-shadow: 2px 2px #000000;
+            transform: translateY(-2px);
+        }
+
+        .minecraft-character {
+            width: 150px;
+            height: 150px;
+            background-image: url('https://minecraft.wiki/images/BlockSprite_dirt.png'); /* Minecraft Steve head image */
+            background-size: cover;
+			image-rendering: pixelated;
+			image-rendering: crisp-edges;
+            margin-bottom: 20px;
+        }
+    </style>
+	<link href="https://fonts.cdnfonts.com/css/minecraftia" rel="stylesheet">
+                
+</head>
+<body>
+    <div class="minecraft-character"></div>
+    <h1>404</h1>
+    <p>Oops! You seem to be lost in the world...</p>
+    <p>The page you're looking for doesn't exist.</p>
+    <a href="/">Return to Home</a>
+</body>
+</html>
