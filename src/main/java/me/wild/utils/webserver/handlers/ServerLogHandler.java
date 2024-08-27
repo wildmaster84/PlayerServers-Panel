@@ -5,6 +5,7 @@ import io.undertow.server.HttpServerExchange;
 import io.undertow.util.Headers;
 import me.wild.api.RequestHandler;
 import me.wild.utils.managers.AuthTokenManager;
+import me.wild.utils.managers.AuthTokenManager.TokenInfo;
 import net.cakemine.playerservers.bungee.PlayerServers;
 import net.cakemine.playerservers.bungee.objects.PlayerServer;
 
@@ -38,13 +39,25 @@ public class ServerLogHandler implements HttpHandler {
             exchange.getResponseHeaders().put(Headers.LOCATION, "/login");
             return;
         }
+        
+        if (exchange.getQueryParameters().get("server_id") == null || exchange.getQueryParameters().get("server_id").isEmpty()) {
+    		exchange.setStatusCode(404);
+    		return;
+    	}
+        String serverId = exchange.getQueryParameters().get("server_id").getFirst();
+        
+        String authToken = exchange.getRequestCookie("Authorization").getValue();
+        TokenInfo token = authTokenManager.validateToken(authToken);
+        if (!token.getPlayerUUID().toString().equalsIgnoreCase(serverId) && !token.isAdmin()) {
+        	exchange.setStatusCode(403);
+        	return;
+        }
 
-        exchange.startBlocking(); // Start blocking mode for stream operations
+        exchange.startBlocking();
         exchange.getResponseHeaders().put(Headers.CONTENT_TYPE, "text/event-stream");
         exchange.getResponseHeaders().put(Headers.CACHE_CONTROL, "no-cache");
         exchange.getResponseHeaders().put(Headers.CONNECTION, "keep-alive");
 
-        String serverId = exchange.getQueryParameters().get("server_id").getFirst();
 
         PlayerServer server = PlayerServers.getApi().getServerMap().get(serverId);
         if (server == null) {

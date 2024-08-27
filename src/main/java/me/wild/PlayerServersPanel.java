@@ -62,7 +62,7 @@ public class PlayerServersPanel extends Plugin {
                 ProxyServer.getInstance().getPluginManager().registerCommand(this, new RegenerateTokenCommand());
                 ProxyServer.getInstance().getPluginManager().registerCommand(this, new LinkCommand(linkTokenManager, databaseManager));
                 
-                getLogger().info("PlayerServers has been enabled.");
+                getLogger().info("PSPanel has been enabled.");
 
             } else {
                 getLogger().severe("Failed to connect to the database. Disabling plugin.");
@@ -199,7 +199,6 @@ public class PlayerServersPanel extends Plugin {
         File dataFolder = getDataFolder();
         File webFolder = new File(dataFolder, "web");
         File errorFolder = new File(dataFolder, "web/errors");
-        File templateFolder = new File(dataFolder, "templates/default");
 
         // Create the target folders if they don't exist
         if (!webFolder.exists() && !webFolder.mkdirs()) {
@@ -210,20 +209,14 @@ public class PlayerServersPanel extends Plugin {
             getLogger().severe("Could not create directory: " + errorFolder.getAbsolutePath());
             return;
         }
-        if (!templateFolder.exists() && !templateFolder.mkdirs()) {
-            getLogger().severe("Could not create directory: " + templateFolder.getAbsolutePath());
-            return;
-        }
 
         // List of files to extract
         String[] webFiles = {"login.html", "index.html", "dashboard.html", "register.html", "server_page.html", "file_manager.html"};
-        String[] errorFiles = {"404.html"};
-        String[] templateFiles = {"SERVER_JAR_HERE.txt"};
+        String[] errorFiles = {"400.html", "401.html", "403.html", "404.html", "405.html", "500.html"};
 
         // Extract web files
         extractFiles("web", webFiles, webFolder);
         extractFiles("web/errors", errorFiles, errorFolder);
-        extractFiles("templates/default", templateFiles, templateFolder);
     }
 
     private void extractFiles(String resourceBase, String[] fileNames, File targetFolder) {

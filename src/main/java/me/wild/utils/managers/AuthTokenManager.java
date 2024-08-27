@@ -85,7 +85,7 @@ public class AuthTokenManager {
     public boolean isAdmin(UUID playerUUID) {
         net.md_5.bungee.api.connection.ProxiedPlayer player = ProxyServer.getInstance().getPlayer(playerUUID);
         if (player != null) {
-            return player.hasPermission("servers.admin");
+            return player.hasPermission("playerservers.admin");
         }
         return false;
     }

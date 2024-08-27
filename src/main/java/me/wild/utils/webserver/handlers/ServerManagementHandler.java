@@ -9,8 +9,8 @@ import me.wild.PlayerServersPanel;
 import me.wild.api.RequestHandler;
 import me.wild.utils.FileUtils;
 import me.wild.utils.managers.AuthTokenManager;
+import me.wild.utils.managers.AuthTokenManager.TokenInfo;
 import net.cakemine.playerservers.bungee.PlayerServers;
-import net.cakemine.playerservers.bungee.PlayerServersAPI;
 import net.cakemine.playerservers.bungee.objects.PlayerServer;
 import net.md_5.bungee.api.ProxyServer;
 
@@ -58,7 +58,14 @@ public class ServerManagementHandler implements HttpHandler {
         }
 
         String serverId = pathSegments[3];
+        String authToken = exchange.getRequestCookie("Authorization").getValue();
+        TokenInfo token = authTokenManager.validateToken(authToken);
+        
         UUID serverUUID = UUID.fromString(serverId);
+        if (!token.getPlayerUUID().toString().equalsIgnoreCase(serverId) && !token.isAdmin()) {
+        	RequestHandler.sendJsonResponse(exchange, 403, false, "You do not have access to this server! ");
+        	return;
+        }
         if (PlayerServers.getApi().getServerMap().isEmpty() || PlayerServers.getApi().getServerMap().get(serverUUID.toString()) == null) {
     		RequestHandler.sendJsonResponse(exchange, 404, false, "Server not found!");
     		return;

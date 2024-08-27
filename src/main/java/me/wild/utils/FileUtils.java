@@ -12,7 +12,6 @@ import java.util.zip.ZipOutputStream;
 
 import io.undertow.server.HttpServerExchange;
 import io.undertow.util.StatusCodes;
-import net.cakemine.playerservers.bungee.PlayerServers;
 
 public class FileUtils {
 

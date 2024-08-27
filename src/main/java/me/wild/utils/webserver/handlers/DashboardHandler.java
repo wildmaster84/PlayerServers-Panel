@@ -10,9 +10,7 @@ import net.cakemine.playerservers.bungee.objects.PlayerServer;
 import me.wild.utils.managers.AuthTokenManager.TokenInfo;
 
 import java.io.IOException;
-import java.util.Collection;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
@@ -56,7 +54,10 @@ public class DashboardHandler implements HttpHandler {
 		if (isAdmin) {
 		    servers = PlayerServers.getApi().getServerMap();
 		} else {
-		    servers.put("playerUUID.toString()", PlayerServers.getApi().getServerMap().get(playerUUID.toString()));
+			if (PlayerServers.getApi().getServerMap() != null || !PlayerServers.getApi().getServerMap().isEmpty()) {
+				servers.put(playerUUID.toString(), PlayerServers.getApi().getServerMap().get(playerUUID.toString()));
+			}
+		    
 		}
 		
 		

@@ -13,14 +13,10 @@ import java.util.concurrent.Future;
 
 import org.mindrot.jbcrypt.BCrypt;
 
-import net.cakemine.playerservers.bungee.PlayerServers;
-import net.cakemine.playerservers.bungee.PlayerServersAPI;
-
 public class DatabaseManager {
 
     private Connection connection;
     private final ExecutorService executorService;
-    private static PlayerServersAPI plugin = PlayerServers.getApi();
 
     public DatabaseManager() {
         // Create a single-threaded executor for database operations

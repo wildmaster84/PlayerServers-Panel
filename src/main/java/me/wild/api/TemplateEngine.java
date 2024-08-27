@@ -3,6 +3,7 @@ package me.wild.api;
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.Map;
 
@@ -11,7 +12,7 @@ import me.wild.PlayerServersPanel;
 public class TemplateEngine {
 
     // Method to load an HTML template file and replace placeholders
-    public static String renderTemplate(String templatePath, Map<String, String> placeholders) throws IOException {
+    public static String renderTemplate(String templatePath, Map<String, String> placeholders) {
         StringBuilder templateContent = new StringBuilder();
 
         // Read the template file
@@ -20,7 +21,13 @@ public class TemplateEngine {
             while ((line = reader.readLine()) != null) {
                 templateContent.append(line).append("\n");
             }
-        }
+        } catch (FileNotFoundException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 
         // Replace placeholders with actual values
         String renderedContent = templateContent.toString();

@@ -1,7 +1,6 @@
 package me.wild.utils.webserver.handlers;
 import io.undertow.server.HttpHandler;
 import io.undertow.server.HttpServerExchange;
-import io.undertow.server.handlers.Cookie;
 import io.undertow.server.handlers.CookieImpl;
 import io.undertow.server.handlers.form.FormData;
 import io.undertow.server.handlers.form.FormDataParser;
@@ -100,7 +99,7 @@ public class LoginHandler implements HttpHandler {
                             String ipAddress = RequestHandler.getClientIp(exchange);
                             String authToken = authTokenManager.generateToken(ipAddress, playerUUID, authTokenManager.isAdmin(playerUUID));  // Adjust packetLength and isAdmin as needed
 
-                            Cookie authCookie = new CookieImpl("Authorization", authToken).setValue(authToken).setMaxAge(7200).setSecure(false);
+                            CookieImpl authCookie = new CookieImpl("Authorization", authToken).setValue(authToken).setMaxAge(7200).setSecure(false);
                             exchange.setStatusCode(302);
                             exchange.setResponseCookie(authCookie);
                             exchange.getResponseHeaders().put(Headers.LOCATION, "/dashboard");
